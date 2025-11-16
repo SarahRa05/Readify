@@ -1,58 +1,38 @@
 <?php
-require 'vendor/autoload.php'; // after you install FlightPHP with Composer
 
-require_once __DIR__ . '/dao/BooksDAO.php';
-require_once __DIR__ . '/dao/CategoriesDAO.php';
-require_once __DIR__ . '/dao/UsersDAO.php';
-require_once __DIR__ . '/dao/LoansDAO.php';
-require_once __DIR__ . '/dao/ReviewsDAO.php';
+require 'vendor/autoload.php';
 
-/**************
- * BOOKS
- **************/
+require_once __DIR__ . '/config.php';
 
-Flight::route('GET /books', function() {
-    $dao = new BooksDAO();
-    Flight::json($dao->getAll());
-});
+// ================== USERS ==================
+require_once __DIR__ . '/rest/services/UsersService.php';
+Flight::register('users_service', 'UsersService');
+require_once __DIR__ . '/rest/routes/UserRoutes.php';
 
-Flight::route('GET /books/@id', function($id) {
-    $dao = new BooksDAO();
-    $book = $dao->getById($id);
-    if ($book) {
-        Flight::json($book);
-    } else {
-        Flight::halt(404, 'Book not found');
-    }
-});
+// ================== CATEGORIES ==================
+require_once __DIR__ . '/rest/services/CategoriesService.php';
+Flight::register('categories_service', 'CategoriesService');
+require_once __DIR__ . '/rest/routes/CategoryRoutes.php';
 
-Flight::route('POST /books', function() {
-    $data = Flight::request()->data->getData();
-    $dao = new BooksDAO();
-    $newId = $dao->create($data);
-    Flight::json(["book_id" => $newId], 201);
-});
+// ================== BOOKS ==================
+require_once __DIR__ . '/rest/services/BooksService.php';
+Flight::register('books_service', 'BooksService');
+require_once __DIR__ . '/rest/routes/BooksRoutes.php';
 
-Flight::route('PUT /books/@id', function($id) {
-    $data = Flight::request()->data->getData();
-    $dao = new BooksDAO();
-    $ok = $dao->update($id, $data);
-    Flight::json(["updated" => $ok]);
-});
+// ================== LOANS ==================
+require_once __DIR__ . '/rest/services/LoansService.php';
+Flight::register('loans_service', 'LoansService');
+require_once __DIR__ . '/rest/routes/LoansRoutes.php';
 
-Flight::route('DELETE /books/@id', function($id) {
-    $dao = new BooksDAO();
-    $ok = $dao->delete($id);
-    Flight::json(["deleted" => $ok]);
-});
+// ================== REVIEWS ==================
+require_once __DIR__ . '/rest/services/ReviewsService.php';
+Flight::register('reviews_service', 'ReviewsService');
+require_once __DIR__ . '/rest/routes/ReviewsRoutes.php';
 
-/**************
- * CATEGORIES (just as an example)
- **************/
+// ================== AUTH ==================
+require_once __DIR__ . '/rest/services/AuthService.php';
+Flight::register('auth_service', 'AuthService');
+require_once __DIR__ . '/rest/routes/AuthRoutes.php';
 
-Flight::route('GET /categories', function() {
-    $dao = new CategoriesDAO();
-    Flight::json($dao->getAll());
-});
-
+// Start Flight
 Flight::start();
