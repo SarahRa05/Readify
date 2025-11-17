@@ -27,4 +27,12 @@ class CategoriesDao extends BaseDao
     public function updateById($id, $entity) {
         return parent::update($entity, $id, $this->pk);
     }
+
+    public function getByName($name) {
+        $stmt = $this->connection->prepare("SELECT * FROM categories WHERE category_name = :name");
+        $stmt->bindParam(':name', $name);
+        $stmt->execute();
+        return $stmt->fetch(); // false if none
+    }
+    
 }
