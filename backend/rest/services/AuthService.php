@@ -1,85 +1,66 @@
 <?php
 
-use Firebase\JWT\JWT;
-use Firebase\JWT\Key;
-
-/**
- * AuthService
- * Handles registration and login + JWT (professor style)
- */
-
-// services & DAO
-require_once __DIR__ . '/UsersService.php';
 require_once __DIR__ . '/../dao/UsersDao.php';
-// ⬆️ NOTICE: no config.php here – it will be loaded by BaseDao via UsersDAO
+require_once __DIR__ . '/../data/Roles.php';
+
+use Firebase\JWT\JWT;
 
 class AuthService {
 
-    private $users_service;
-    private $users_dao;
+  private $users_dao;
 
-    public function __construct() {
-        $this->users_service = new UsersService();
-        $this->users_dao     = new UsersDao();   // same as in professor's code
+  public function __construct() {
+    $this->users_dao = new UsersDao();
+  }
+
+  public function register($entity) {
+
+    if (empty($entity['full_name']) || empty($entity['email']) || empty($entity['password'])) {
+      return ['success' => false, 'error' => 'full_name, email and password are required.'];
     }
 
-    // ----------------- REGISTER -----------------
-    /**
-     * Register new user (used by POST /auth/register)
-     */
-    public function register($data) {
-        // reuse UsersService so validation & hashing stay in one place
-        $res = $this->users_service->createUser($data);
-
-        if (!$res['success']) {
-            return $res;
-        }
-
-        // professor usually just returns created user
-        return $res;
+    $existing = $this->users_dao->getByEmail($entity['email']);
+    if ($existing) {
+      return ['success' => false, 'error' => 'Email already registered.'];
     }
 
-    // ----------------- LOGIN -----------------
-    /**
-     * Login existing user (used by POST /auth/login)
-     */
-    public function login($data) {
-        if (empty($data['email']) || empty($data['password'])) {
-            return ['success' => false, 'error' => 'Email and password are required.'];
-        }
+    $new_user = [
+      'full_name'     => $entity['full_name'],
+      'email'         => $entity['email'],
+      'password_hash' => password_hash($entity['password'], PASSWORD_BCRYPT),
+      'role'          => $entity['role'] ?? Roles::MEMBER
+    ];
 
-        // find user by email
-        $user = $this->users_dao->getByEmail($data['email']);
-        if (!$user) {
-            return ['success' => false, 'error' => 'Invalid email or password.'];
-        }
+    $inserted = $this->users_dao->add($new_user);
+    unset($inserted['password_hash']);
 
-        // verify password
-        if (!password_verify($data['password'], $user['password_hash'])) {
-            return ['success' => false, 'error' => 'Invalid email or password.'];
-        }
+    return ['success' => true, 'data' => $inserted];
+  }
 
-        // JWT payload (professor-style)
-        $payload = [
-            'user_id' => $user['user_id'],
-            'email'   => $user['email'],
-            'role'    => $user['role'],
-            'iat'     => time(),
-            'exp'     => time() + 3600 * 24 // 24h
-        ];
+  public function login($entity) {
 
-        $token = JWT::encode($payload, Config::JWT_SECRET(), 'HS256');
-
-        // never send password hash
-        unset($user['password_hash']);
-
-        return [
-            'success' => true,
-            'data'    => [
-                'token' => $token,
-                'user'  => $user
-            ]
-        ];
+    if (empty($entity['email']) || empty($entity['password'])) {
+      return ['success' => false, 'error' => 'Email and password are required.'];
     }
+
+    $user = $this->users_dao->getByEmail($entity['email']);
+    if (!$user || !password_verify($entity['password'], $user['password_hash'])) {
+      return ['success' => false, 'error' => 'Invalid email or password.'];
+    }
+
+    unset($user['password_hash']);
+
+    $jwt_payload = [
+      'user' => $user,
+      'iat'  => time(),
+      'exp'  => time() + (60 * 60 * 24)
+    ];
+
+    $token = JWT::encode($jwt_payload, Config::JWT_SECRET(), 'HS256');
+
+    return ['success' => true, 'data' => [
+      'token' => $token,
+      'user'  => $user
+    ]];
+  }
 }
-

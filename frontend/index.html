@@ -5,43 +5,45 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Readify · Digital Library</title>
 
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon.png">
-
-
-  
   <link rel="stylesheet" href="assets/spapp/spapp.css">
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <header class="site-header">
-    <div class="brand">📚 Readify</div>
-    <nav class="nav">
-      <a href="#view_dashboard">Dashboard</a>
-      <a href="#view_catalog">Catalog</a>
-      <a href="#view_myloans">My Loans</a>
-      <a href="#view_admin">Admin</a>
-      <a href="#view_login">Logout</a>
-    </nav>
-  </header>
 
-  
-  <main id="spapp" role="main">
-    <section id="view_dashboard" data-load="dashboard.html"></section>
-    <section id="view_catalog"   data-load="catalog.html"></section>
-    <section id="view_myloans"   data-load="myloans.html"></section>
-    <section id="view_admin"     data-load="admin.html"></section>
-    <section id="view_addbook"   data-load="addbook.html"></section>
-    <section id="view_login"     data-load="login.html"></section>
-    <section id="view_register"  data-load="register.html"></section>
-    <section id="view_404"       data-load="404.html"></section>
-  </main>
+<header class="site-header">
+  <div class="brand">📚 Readify</div>
 
-  <footer class="site-footer">© 2025 Readify</footer>
+  <!-- IMPORTANT: IDs are required for role-based UI -->
+  <nav class="nav">
+    <a id="navDashboard" href="#view_dashboard">Dashboard</a>
+    <a id="navCatalog" href="#view_catalog">Catalog</a>
+    <a id="navMyLoans" href="#view_myloans">My Loans</a>
+    <a id="navAdmin" href="#view_admin">Admin</a>
 
-  
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="assets/spapp/jquery.spapp.js"></script>
-  <script src="js/app.js"></script>
+    <a id="navLogin" href="#view_login">Login</a>
+    <a id="navRegister" href="#view_register">Register</a>
+    <a id="navLogout" href="#" onclick="logout()">Logout</a>
+  </nav>
+</header>
+
+<main id="spapp">
+  <section id="view_dashboard" data-load="dashboard.html"></section>
+  <section id="view_catalog" data-load="catalog.html"></section>
+  <section id="view_myloans" data-load="myloans.html"></section>
+  <section id="view_admin" data-load="admin.html"></section>
+  <section id="view_addbook" data-load="addbook.html"></section>
+  <section id="view_login" data-load="login.html"></section>
+  <section id="view_register" data-load="register.html"></section>
+  <section id="view_404" data-load="404.html"></section>
+</main>
+
+<footer class="site-footer">
+  © 2025 Readify
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="assets/spapp/jquery.spapp.js"></script>
+<script src="js/app.js"></script>
+
 </body>
 </html>

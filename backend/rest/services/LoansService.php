@@ -14,6 +14,18 @@ class LoansService extends BaseService {
         return ['success' => true, 'data' => parent::get_all()];
     }
 
+    // ✅ NEW: Return loans for a specific user (used in LoansRoutes.php)
+    public function get_by_user_id($user_id) {
+        if (empty($user_id)) {
+            return ['success' => false, 'error' => 'user_id is required'];
+        }
+
+        // This expects a method in LoansDao called get_by_user_id($user_id)
+        $data = $this->dao->get_by_user_id($user_id);
+
+        return ['success' => true, 'data' => $data];
+    }
+
     // Get single loan
     public function getLoan($id) {
         $l = parent::get_by_id($id);
@@ -23,8 +35,10 @@ class LoansService extends BaseService {
 
     // Create new loan (basic validation)
     public function addLoan($data) {
-        if (empty($data['user_id']) || empty($data['book_id']) ||
-            empty($data['borrow_date']) || empty($data['due_date'])) {
+        if (
+            empty($data['user_id']) || empty($data['book_id']) ||
+            empty($data['borrow_date']) || empty($data['due_date'])
+        ) {
             return ['success' => false, 'error' => 'user_id, book_id, borrow_date and due_date are required.'];
         }
 
