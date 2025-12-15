@@ -1,146 +1,77 @@
 <?php
+require_once __DIR__ . '/../data/Roles.php';
 
-use OpenApi\Annotations as OA;
-
-
-/**
+/*** 
  * @OA\Get(
- *      path="/categories",
- *      tags={"categories"},
- *      summary="Get all categories",
- *      @OA\Response(
- *           response=200,
- *           description="Array of all categories"
- *      )
+ *   path="/categories",
+ *   tags={"categories"},
+ *   summary="Get all categories",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\Response(response=200, description="List of categories")
  * )
  */
-Flight::route('GET /categories', function(){
-    $res = Flight::categories_service()->getCategories();
-    if ($res['success']) {
-        Flight::json($res['data']);
-    } else {
-        Flight::halt(500, $res['error']);
-    }
+Flight::route('GET /categories', function () {
+  Flight::auth_middleware()->authorizeRoles([Roles::ADMIN, Roles::MEMBER]);
+  Flight::json(Flight::categories_service()->get_all());
 });
 
-/**
+/*** 
  * @OA\Get(
- *     path="/categories/{id}",
- *     tags={"categories"},
- *     summary="Get category by ID",
- *     @OA\Parameter(
- *         name="id",
- *         in="path",
- *         required=true,
- *         description="Category ID",
- *         @OA\Schema(type="integer", example=1)
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Category object"
- *     ),
- *     @OA\Response(
- *         response=404,
- *         description="Category not found"
- *     )
+ *   path="/categories/{id}",
+ *   tags={"categories"},
+ *   summary="Get category by ID",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\Parameter(name="id", in="path", required=true),
+ *   @OA\Response(response=200, description="Single category")
  * )
  */
-Flight::route('GET /categories/@id', function($id){
-    $res = Flight::categories_service()->getCategory($id);
-    if ($res['success']) {
-        Flight::json($res['data']);
-    } else {
-        Flight::halt(404, $res['error']);
-    }
+Flight::route('GET /categories/@id', function ($id) {
+  Flight::auth_middleware()->authorizeRoles([Roles::ADMIN, Roles::MEMBER]);
+  Flight::json(Flight::categories_service()->get_by_id($id));
 });
 
-/**
+/*** 
  * @OA\Post(
- *     path="/categories",
- *     tags={"categories"},
- *     summary="Create a new category",
- *     @OA\RequestBody(
- *         required=true,
- *         @OA\JsonContent(
- *             required={"category_name"},
- *             @OA\Property(property="category_name", type="string", example="Fiction"),
- *             @OA\Property(property="description", type="string", example="Fictional books")
- *         )
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="New category created"
- *     )
+ *   path="/categories",
+ *   tags={"categories"},
+ *   summary="Create new category (ADMIN only)",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\Response(response=200, description="Category created")
  * )
  */
-Flight::route('POST /categories', function(){
-    $data = Flight::request()->data->getData();
-    $res = Flight::categories_service()->createCategory($data);
-    if ($res['success']) {
-        Flight::json($res['data']);
-    } else {
-        Flight::halt(500, $res['error']);
-    }
+Flight::route('POST /categories', function () {
+  Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
+  $data = Flight::request()->data->getData();
+  Flight::json(Flight::categories_service()->add($data));
 });
 
-/**
+/*** 
  * @OA\Put(
- *     path="/categories/{id}",
- *     tags={"categories"},
- *     summary="Update category by ID",
- *     @OA\Parameter(
- *         name="id",
- *         in="path",
- *         required=true,
- *         description="Category ID",
- *         @OA\Schema(type="integer", example=1)
- *     ),
- *     @OA\RequestBody(
- *         required=true,
- *         @OA\JsonContent(
- *             @OA\Property(property="category_name", type="string", example="Updated Fiction"),
- *             @OA\Property(property="description", type="string", example="Updated description")
- *         )
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Category updated"
- *     )
+ *   path="/categories/{id}",
+ *   tags={"categories"},
+ *   summary="Update category (ADMIN only)",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\Parameter(name="id", in="path", required=true),
+ *   @OA\Response(response=200, description="Category updated")
  * )
  */
-Flight::route('PUT /categories/@id', function($id){
-    $data = Flight::request()->data->getData();
-    $res = Flight::categories_service()->updateCategory($id, $data);
-    if ($res['success']) {
-        Flight::json($res['data']);
-    } else {
-        Flight::halt(500, $res['error']);
-    }
+Flight::route('PUT /categories/@id', function ($id) {
+  Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
+  $data = Flight::request()->data->getData();
+  Flight::json(Flight::categories_service()->update($id, $data));
 });
 
-/**
+/*** 
  * @OA\Delete(
- *     path="/categories/{id}",
- *     tags={"categories"},
- *     summary="Delete category by ID",
- *     @OA\Parameter(
- *         name="id",
- *         in="path",
- *         required=true,
- *         description="Category ID",
- *         @OA\Schema(type="integer", example=1)
- *     ),
- *     @OA\Response(
- *         response=200,
- *         description="Delete result"
- *     )
+ *   path="/categories/{id}",
+ *   tags={"categories"},
+ *   summary="Delete category (ADMIN only)",
+ *   security={{"bearerAuth":{}}},
+ *   @OA\Parameter(name="id", in="path", required=true),
+ *   @OA\Response(response=200, description="Category deleted")
  * )
  */
-Flight::route('DELETE /categories/@id', function($id){
-    $res = Flight::categories_service()->deleteCategory($id);
-    if ($res['success']) {
-        Flight::json($res);
-    } else {
-        Flight::halt(500, 'Delete failed.');
-    }
+Flight::route('DELETE /categories/@id', function ($id) {
+  Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
+  Flight::json(Flight::categories_service()->delete($id));
 });

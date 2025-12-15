@@ -9,16 +9,26 @@ Flight::group('/books', function () {
      *     path="/books",
      *     tags={"books"},
      *     summary="Get all books",
-     *     description="Returns a list of all books in the library.",
+     *     description="Accessible to any authenticated user (member/admin).",
      *     @OA\Response(
      *         response=200,
      *         description="Array of books"
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized"
      *     )
      * )
      */
     Flight::route('GET /', function () {
-        // returns: ['success' => true, 'data' => [...]]
-        Flight::json(Flight::books_service()->getBooks());
+        // ✅ No authorization check here.
+        // Global middleware already enforces authentication.
+        $res = Flight::books_service()->getBooks();
+        if (isset($res['success']) && $res['success']) {
+            Flight::json($res['data']);
+        } else {
+            Flight::halt(500, isset($res['error']) ? $res['error'] : 'Server error');
+        }
     });
 
     /**
@@ -26,6 +36,7 @@ Flight::group('/books', function () {
      *     path="/books/{id}",
      *     tags={"books"},
      *     summary="Get a single book by ID",
+     *     description="Accessible to any authenticated user (member/admin).",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -33,26 +44,27 @@ Flight::group('/books', function () {
      *         description="Book ID",
      *         @OA\Schema(type="integer", example=1)
      *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Book object"
-     *     ),
-     *     @OA\Response(
-     *         response=404,
-     *         description="Book not found"
-     *     )
+     *     @OA\Response(response=200, description="Book object"),
+     *     @OA\Response(response=404, description="Book not found"),
+     *     @OA\Response(response=401, description="Unauthorized")
      * )
      */
     Flight::route('GET /@id', function ($id) {
-        Flight::json(Flight::books_service()->getBook($id));
+        // ✅ No authorization check here.
+        $res = Flight::books_service()->getBook($id);
+        if ($res['success']) {
+            Flight::json($res['data']);
+        } else {
+            Flight::halt(404, $res['error']);
+        }
     });
 
     /**
      * @OA\Post(
      *     path="/books",
      *     tags={"books"},
-     *     summary="Create a new book",
-     *     description="Adds a new book to the database.",
+     *     summary="Create a new book (admin only)",
+     *     description="Admins can add new books.",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
@@ -65,23 +77,30 @@ Flight::group('/books', function () {
      *             @OA\Property(property="available_copies", type="integer", example=3)
      *         )
      *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Created book (with generated id)"
-     *     )
+     *     @OA\Response(response=200, description="Created book"),
+     *     @OA\Response(response=403, description="Forbidden"),
+     *     @OA\Response(response=401, description="Unauthorized")
      * )
      */
     Flight::route('POST /', function () {
+        // ✅ AUTHORIZATION (admin only)
+        Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
+
         $data = Flight::request()->data->getData();
-        Flight::json(Flight::books_service()->addBook($data));
+        $res  = Flight::books_service()->addBook($data);
+
+        if ($res['success']) {
+            Flight::json($res['data']);
+        } else {
+            Flight::halt(500, $res['error']);
+        }
     });
 
     /**
      * @OA\Put(
      *     path="/books/{id}",
      *     tags={"books"},
-     *     summary="Update an existing book",
-     *     description="Replaces all editable fields of a book.",
+     *     summary="Update an existing book (admin only)",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -93,31 +112,37 @@ Flight::group('/books', function () {
      *         required=true,
      *         @OA\JsonContent(
      *             @OA\Property(property="isbn", type="string", example="9780131103627"),
-     *             @OA\Property(property="title", type="string", example="The C Programming Language - Updated"),
-     *             @OA\Property(property="author", type="string", example="Kernighan & Ritchie"),
+     *             @OA\Property(property="title", type="string", example="Updated title"),
+     *             @OA\Property(property="author", type="string", example="Updated author"),
      *             @OA\Property(property="publication_year", type="integer", example=1988),
      *             @OA\Property(property="category_id", type="integer", nullable=true, example=1),
      *             @OA\Property(property="available_copies", type="integer", example=5)
      *         )
      *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Updated book"
-     *     )
+     *     @OA\Response(response=200, description="Updated book"),
+     *     @OA\Response(response=403, description="Forbidden"),
+     *     @OA\Response(response=401, description="Unauthorized")
      * )
      */
     Flight::route('PUT /@id', function ($id) {
+        // ✅ AUTHORIZATION (admin only)
+        Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
+
         $data = Flight::request()->data->getData();
-        // id first, data second – your service handles it
-        Flight::json(Flight::books_service()->updateBook($id, $data));
+        $res  = Flight::books_service()->updateBook($id, $data);
+
+        if ($res['success']) {
+            Flight::json($res['data']);
+        } else {
+            Flight::halt(500, $res['error']);
+        }
     });
 
     /**
      * @OA\Delete(
      *     path="/books/{id}",
      *     tags={"books"},
-     *     summary="Delete a book",
-     *     description="Deletes a book by ID.",
+     *     summary="Delete a book (admin only)",
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -125,16 +150,22 @@ Flight::group('/books', function () {
      *         description="Book ID",
      *         @OA\Schema(type="integer", example=3)
      *     ),
-     *     @OA\Response(
-     *         response=200,
-     *         description="Delete result"
-     *     )
+     *     @OA\Response(response=200, description="Delete result"),
+     *     @OA\Response(response=403, description="Forbidden"),
+     *     @OA\Response(response=401, description="Unauthorized")
      * )
      */
     Flight::route('DELETE /@id', function ($id) {
-        Flight::json(Flight::books_service()->deleteBook($id));
+        // ✅ AUTHORIZATION (admin only)
+        Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
+
+        $res = Flight::books_service()->deleteBook($id);
+
+        if ($res['success']) {
+            Flight::json($res['data']);
+        } else {
+            Flight::halt(500, 'Delete failed.');
+        }
     });
+
 });
-
-
-

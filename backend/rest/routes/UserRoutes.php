@@ -2,7 +2,6 @@
 
 use OpenApi\Annotations as OA;
 
-
 /**
  * @OA\Get(
  *      path="/users",
@@ -15,10 +14,12 @@ use OpenApi\Annotations as OA;
  * )
  */
 Flight::route('GET /users', function () {
+    // AUTHORIZATION: admin only
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
+
     $res = Flight::users_service()->getUsers();
 
     if ($res['success']) {
-        // Return just the data, like in RestaurantRoutes
         Flight::json($res['data']);
     } else {
         Flight::halt(500, $res['error']);
@@ -48,6 +49,9 @@ Flight::route('GET /users', function () {
  * )
  */
 Flight::route('GET /users/@id', function ($id) {
+    // AUTHORIZATION: admin only
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
+
     $res = Flight::users_service()->getUser($id);
 
     if ($res['success']) {
@@ -83,13 +87,15 @@ Flight::route('GET /users/@id', function ($id) {
  * )
  */
 Flight::route('POST /users', function () {
+    // AUTHORIZATION: admin only
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
+
     $data = Flight::request()->data->getData();
     $res  = Flight::users_service()->createUser($data);
 
     if ($res['success']) {
         Flight::json($res['data']);
     } else {
-        // Same style as professor's auth routes (halt with 500 on error)
         Flight::halt(500, $res['error']);
     }
 });
@@ -130,13 +136,15 @@ Flight::route('POST /users', function () {
  * )
  */
 Flight::route('PUT /users/@id', function ($id) {
+    // AUTHORIZATION: admin only
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
+
     $data = Flight::request()->data->getData();
     $res  = Flight::users_service()->updateUser($id, $data);
 
     if ($res['success']) {
         Flight::json($res['data']);
     } else {
-        // If service says "User not found", we return 404, otherwise 500
         if ($res['error'] === 'User not found.') {
             Flight::halt(404, $res['error']);
         } else {
@@ -168,6 +176,9 @@ Flight::route('PUT /users/@id', function ($id) {
  * )
  */
 Flight::route('DELETE /users/@id', function ($id) {
+    // AUTHORIZATION: admin only
+    Flight::auth_middleware()->authorizeRole(Roles::ADMIN);
+
     $res = Flight::users_service()->deleteUser($id);
 
     if ($res['success']) {
