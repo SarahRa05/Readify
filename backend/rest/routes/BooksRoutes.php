@@ -24,10 +24,13 @@ Flight::group('/books', function () {
         // ✅ No authorization check here.
         // Global middleware already enforces authentication.
         $res = Flight::books_service()->getBooks();
+
         if (isset($res['success']) && $res['success']) {
             Flight::json($res['data']);
         } else {
-            Flight::halt(500, isset($res['error']) ? $res['error'] : 'Server error');
+            $status = isset($res['status']) ? (int)$res['status'] : 500;
+            $error  = isset($res['error']) ? $res['error'] : 'Server error';
+            Flight::halt($status, $error);
         }
     });
 
@@ -46,16 +49,20 @@ Flight::group('/books', function () {
      *     ),
      *     @OA\Response(response=200, description="Book object"),
      *     @OA\Response(response=404, description="Book not found"),
-     *     @OA\Response(response=401, description="Unauthorized")
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=400, description="Invalid book id")
      * )
      */
     Flight::route('GET /@id', function ($id) {
         // ✅ No authorization check here.
         $res = Flight::books_service()->getBook($id);
-        if ($res['success']) {
+
+        if (isset($res['success']) && $res['success']) {
             Flight::json($res['data']);
         } else {
-            Flight::halt(404, $res['error']);
+            $status = isset($res['status']) ? (int)$res['status'] : 404;
+            $error  = isset($res['error']) ? $res['error'] : 'Book not found';
+            Flight::halt($status, $error);
         }
     });
 
@@ -78,6 +85,7 @@ Flight::group('/books', function () {
      *         )
      *     ),
      *     @OA\Response(response=200, description="Created book"),
+     *     @OA\Response(response=400, description="Validation error"),
      *     @OA\Response(response=403, description="Forbidden"),
      *     @OA\Response(response=401, description="Unauthorized")
      * )
@@ -89,10 +97,12 @@ Flight::group('/books', function () {
         $data = Flight::request()->data->getData();
         $res  = Flight::books_service()->addBook($data);
 
-        if ($res['success']) {
+        if (isset($res['success']) && $res['success']) {
             Flight::json($res['data']);
         } else {
-            Flight::halt(500, $res['error']);
+            $status = isset($res['status']) ? (int)$res['status'] : 500;
+            $error  = isset($res['error']) ? $res['error'] : 'Server error';
+            Flight::halt($status, $error);
         }
     });
 
@@ -120,8 +130,10 @@ Flight::group('/books', function () {
      *         )
      *     ),
      *     @OA\Response(response=200, description="Updated book"),
+     *     @OA\Response(response=400, description="Validation error"),
      *     @OA\Response(response=403, description="Forbidden"),
-     *     @OA\Response(response=401, description="Unauthorized")
+     *     @OA\Response(response=401, description="Unauthorized"),
+     *     @OA\Response(response=404, description="Book not found")
      * )
      */
     Flight::route('PUT /@id', function ($id) {
@@ -131,10 +143,12 @@ Flight::group('/books', function () {
         $data = Flight::request()->data->getData();
         $res  = Flight::books_service()->updateBook($id, $data);
 
-        if ($res['success']) {
+        if (isset($res['success']) && $res['success']) {
             Flight::json($res['data']);
         } else {
-            Flight::halt(500, $res['error']);
+            $status = isset($res['status']) ? (int)$res['status'] : 500;
+            $error  = isset($res['error']) ? $res['error'] : 'Server error';
+            Flight::halt($status, $error);
         }
     });
 
@@ -151,6 +165,7 @@ Flight::group('/books', function () {
      *         @OA\Schema(type="integer", example=3)
      *     ),
      *     @OA\Response(response=200, description="Delete result"),
+     *     @OA\Response(response=400, description="Invalid book id"),
      *     @OA\Response(response=403, description="Forbidden"),
      *     @OA\Response(response=401, description="Unauthorized")
      * )
@@ -161,10 +176,12 @@ Flight::group('/books', function () {
 
         $res = Flight::books_service()->deleteBook($id);
 
-        if ($res['success']) {
+        if (isset($res['success']) && $res['success']) {
             Flight::json($res['data']);
         } else {
-            Flight::halt(500, 'Delete failed.');
+            $status = isset($res['status']) ? (int)$res['status'] : 500;
+            $error  = isset($res['error']) ? $res['error'] : 'Delete failed.';
+            Flight::halt($status, $error);
         }
     });
 

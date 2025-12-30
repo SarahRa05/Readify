@@ -1,17 +1,89 @@
+<!-- frontend/views/addbook.html -->
 <section>
-    <h1 class="h1">Add New Book</h1>
-    <form class="card" style="margin-top:1rem">
-      <div class="row">
-        <div><label>Book Title*</label><input placeholder="Enter title"></div>
-        <div><label>Author*</label><input placeholder="Enter author"></div>
-        <div><label>ISBN</label><input placeholder="978-0-00-000000-0"></div>
-        <div><label>Category*</label><select><option>Fiction</option><option>Non-Fiction</option><option>Romance</option></select></div>
-        <div><label>Publisher</label><input placeholder="Publisher name"></div>
-        <div><label>Publication Year</label><input value="2025"></div>
-        <div><label>Number of Copies*</label><input type="number" value="1" min="1"></div>
+  <h1 class="h1">Add New Book</h1>
+
+  <form id="addBookForm" class="card" style="margin-top:1rem" novalidate>
+    <div class="row">
+      <div>
+        <label>Book Title*</label>
+        <input
+          id="bookTitle"
+          name="title"
+          type="text"
+          placeholder="Enter title"
+          required
+          minlength="2"
+        >
       </div>
-      <div style="margin-top:.8rem"><label>Description</label><textarea rows="4" placeholder="Enter description"></textarea></div>
-      <div style="margin-top:1rem"><button>Add Book</button> <a href="#view_admin"><button class="secondary" type="button">Cancel</button></a></div>
-    </form>
+
+      <div>
+        <label>Author*</label>
+        <input
+          id="bookAuthor"
+          name="author"
+          type="text"
+          placeholder="Enter author"
+          required
+          minlength="2"
+        >
+      </div>
+
+      <div>
+        <label>ISBN</label>
+        <input
+          id="bookIsbn"
+          name="isbn"
+          type="text"
+          placeholder="9780131103627"
+        >
+      </div>
+
+      <div>
+        <label>Category*</label>
+        <select id="bookCategoryId" name="category_id" required>
+          <option value="">Select category</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Publication Year*</label>
+        <input
+          id="bookYear"
+          name="publication_year"
+          type="number"
+          value="2025"
+          min="0"
+          max="2100"
+          required
+        >
+      </div>
+
+      <div>
+        <label>Number of Copies*</label>
+        <input
+          id="bookCopies"
+          name="available_copies"
+          type="number"
+          value="1"
+          min="1"
+          required
+        >
+      </div>
+    </div>
+
+    <div style="margin-top:.8rem">
+      <label>Description</label>
+      <textarea
+        id="bookDescription"
+        name="description"
+        rows="4"
+        placeholder="Enter description"
+      ></textarea>
+    </div>
+
+    <div style="margin-top:1rem">
+      <button type="submit">Add Book</button>
+      <a href="#view_admin"><button class="secondary" type="button">Cancel</button></a>
+    </div>
+  </form>
 </section>
-  

@@ -1,15 +1,29 @@
+<!-- frontend/views/login.html -->
 <section class="card" style="max-width:520px;margin-inline:auto">
   <h1 class="h1">Sign In</h1>
 
-  <form id="loginForm" style="margin-top:1rem">
+  <form id="loginForm" style="margin-top:1rem" novalidate>
     <div>
       <label>Email</label>
-      <input id="loginEmail" type="email" placeholder="you@example.com" required>
+      <input
+        id="loginEmail"
+        name="email"
+        type="email"
+        placeholder="you@example.com"
+        required
+      >
     </div>
 
     <div style="margin-top:.6rem">
       <label>Password</label>
-      <input id="loginPassword" type="password" placeholder="•••••••" required>
+      <input
+        id="loginPassword"
+        name="password"
+        type="password"
+        placeholder="•••••••"
+        required
+        minlength="2"
+      >
     </div>
 
     <div style="margin-top:1rem">
